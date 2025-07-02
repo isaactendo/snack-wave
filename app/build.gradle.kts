@@ -49,9 +49,11 @@ dependencies {
    // implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
     //implementation(libs.androidx.benchmark.macro)
     //implementation(libs.my.library)
-    implementation("com.google.android.gms:play-services-location:21.0.1")
-
-    implementation(libs.androidx.navigation.dynamic.features.fragment)
+    implementation (platform("com.google.firebase:firebase-bom:32.7.1")) // Use latest
+    implementation ("com.google.firebase:firebase-auth-ktx")
+    implementation ("com.google.firebase:firebase-database-ktx") // Optional, for Realtime DB
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -60,8 +62,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose.jvmstubs)
-    implementation(libs.androidx.navigation.compose.android)
+    implementation(libs.androidx.animation.core.lint)
+    implementation(libs.androidx.animation.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
