@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.tendo.snackwaves" />
+                  <option name="mobileSdkAppId" value="1:758041674267:android:63ad752e0cedc7fef12ebe" />
+                  <option name="projectId" value="snack-waves" />
+                  <option name="projectNumber" value="758041674267" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
