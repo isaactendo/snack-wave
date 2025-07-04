@@ -49,9 +49,12 @@ dependencies {
    // implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
     //implementation(libs.androidx.benchmark.macro)
     //implementation(libs.my.library)
-    implementation (platform("com.google.firebase:firebase-bom:32.7.1")) // Use latest
-    implementation ("com.google.firebase:firebase-auth-ktx")
-    implementation ("com.google.firebase:firebase-database-ktx") // Optional, for Realtime DB
+
+    implementation (libs.androidx.material.icons.core)
+    implementation( libs.androidx.material.icons.extended)
+    implementation (platform(libs.firebase.bom)) // Use latest
+    implementation (libs.firebase.auth.ktx)
+    implementation (libs.firebase.database.ktx) // Optional, for Realtime DB
     implementation(libs.play.services.location)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
@@ -62,7 +65,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.animation.core.lint)
+//    implementation(libs.androidx.animation.core.lint)
     implementation(libs.androidx.animation.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

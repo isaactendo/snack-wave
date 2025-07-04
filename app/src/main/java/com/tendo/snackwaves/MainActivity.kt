@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Geocoder
 import android.os.Bundle
+import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +47,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -79,8 +82,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import androidx.lint.kotlin.metadata.Visibility
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -105,18 +108,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SnackWavesTheme  {
+            SnackWavesTheme {
                 FoodNavigation(onNextClick = {
-                   // TODO: Define what happens when "Next" is clicked in this preview
-                   println("Next button clicked in WelcomeScreen")
-               } )
+                    // TODO: Define what happens when "Next" is clicked in this preview
+                    // println("Next button clicked in WelcomeScreen")
+                }
+                )
 //                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 //                    Box(
 //                        modifier = Modifier
 //                            .fillMaxSize()
                 //                            .padding(innerPadding)
 //                    ) {
-
 
 
             }
@@ -179,12 +182,112 @@ fun WelcomeScreen(onNextClick: () -> Unit) {
     }
 }
 
+@Composable
+fun HomeScreenScaffold(navController: NavHostController) {
+    Scaffold(
+        modifier = Modifier,
+        floatingActionButtonPosition = FabPosition.Center,
+//        isFloatingActionButtonDocked = true, // This parameter is not available in Material3 Scaffold
+        bottomBar = {
+            BottomAppBar(containerColor = Color.Red) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(space = 50.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.homep),
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = { /* TODO */ }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.contact),
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = { /* TODO */ }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.chat),
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = { /* TODO */ }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.heart),
+                            contentDescription = null
+                        )
+                    }
+                }
 
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { /* TODO: Navigate to Cart or Add */ },
+                containerColor = Color.Red,
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add",
+                    tint = Color.White
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Transparent),
+                contentAlignment = Alignment.Center
+
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .offset(y = 3.dp)
+                        .size(size = 50.dp)
+                        .clip(CircleShape)
+                        // .padding(start = 0.dp)
+                        .background(Color.Red),
+                    //  contentAlignment = Alignment.Center
+
+                )
+
+
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = null,
+                    Modifier.size(size = 40.dp),
+                    tint = Color.White
+                )
+
+            }
+        }
+
+    ) {
+        Box(modifier = Modifier.padding(it)) {
+            HomeScreen(
+                onFoodItemClick = {},
+                onCartClick = {},
+                onHistoryClick = {},
+                modifier = Modifier.padding(it)
+            )
+
+        }
+    }
+
+}
 
 @Composable
 fun LoginScreen(
     onLoginClick: () -> Unit,
-    onSignUpClick: () -> Unit
+    onSignUpClick: () -> Unit,
+    navController: NavHostController,
+    auth: FirebaseAuth?=null
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -265,11 +368,14 @@ fun FoodNavigation(onNextClick: () -> Unit) {
         }
         composable("login") {
             LoginScreen(
+                navController = navController,
                 onLoginClick = {
-                    navController.navigate("location"){
-                        popUpTo("login"){
+
+                    navController.navigate("location") {
+                        popUpTo("login") {
                             inclusive = true
                         }
+                        launchSingleTop = true
                     }
                     // Will update later to go to home/menu
                 },
@@ -280,19 +386,20 @@ fun FoodNavigation(onNextClick: () -> Unit) {
         }
         // Placeholder for signup screen
         composable("signup") {
-            Text("Sign Up Page (To be created next)")
+          //  Text("Sign Up Page (To be created next)")
             SignupScreen(
-                onSignupClick = {
-                    // Will update later to go to home/menu
-                },
+                auth = Firebase.auth,
+                database = Firebase.database,
+                navController = navController,
                 onBackToLoginClick = {
-                    navController.navigate("login")
-                },
-                navigate = Unit
+                    navController.popBackStack()
+                }
+             //   navigate = Unit,
+              //  onSignupClick = {
+                 //   navController.navigate("location")
+            //    }
+
             )
-
-
-
         }
         composable("location") {
             LocationScreen(
@@ -302,7 +409,7 @@ fun FoodNavigation(onNextClick: () -> Unit) {
             )
         }
         composable("home") {
-            HomeScreenScaffold()
+            HomeScreenScaffold(navController = navController)
         }
 
         composable("FoodDetails") {
@@ -324,20 +431,21 @@ fun FoodNavigation(onNextClick: () -> Unit) {
                 navController = navController
             )
 
-               // navController.navigate("orderSheet")
+            // navController.navigate("orderSheet")
 
         }
 
-        dialog("orderSheet", dialogProperties = DialogProperties(
-            usePlatformDefaultWidth = false,
+        dialog(
+            "orderSheet", dialogProperties = DialogProperties(
+                usePlatformDefaultWidth = false,
             )
         ) {
-           // OrderConfirmationSheet(navController)
+            // OrderConfirmationSheet(navController)
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ModalBottomSheet(
                 onDismissRequest = { navController.popBackStack() },
                 sheetState = sheetState,
-                ){
+            ) {
                 OrderConfirmationSheet(
                     navController = navController,
                     onDismiss = { navController.popBackStack() })
@@ -349,12 +457,25 @@ fun FoodNavigation(onNextClick: () -> Unit) {
 
         composable("history") {
             val sampleOrders = listOf(
-                OrderItem(1, "Hunger Buzz", R.drawable.hunburger, 450, "Delivered", "June 19, 2025"),
-                OrderItem(2, "Cheesy Pizza", R.drawable.hunburger, 750, "In Progress", "June 18, 2025")
+                OrderItem(
+                    1,
+                    "Hunger Buzz",
+                    R.drawable.hunburger,
+                    450,
+                    "Delivered",
+                    "June 19, 2025"
+                ),
+                OrderItem(
+                    2,
+                    "Cheesy Pizza",
+                    R.drawable.hunburger,
+                    750,
+                    "In Progress",
+                    "June 18, 2025"
+                )
             )
             OrderHistoryScreen(orders = sampleOrders)
         }
-
 
 
     }
@@ -377,7 +498,10 @@ fun PasswordInputField(
         trailingIcon = {
             val icon = if (passwordVisible) Icons.Default.Add else Icons.Default.Search
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                Icon(imageVector = icon, contentDescription = if (passwordVisible) "Hide password" else "Show password")
+                Icon(
+                    imageVector = icon,
+                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                )
             }
         },
         modifier = Modifier.fillMaxWidth()
@@ -437,119 +561,6 @@ fun FoodDetailsScreen(navController: NavController) {
     }
 }
 
-@Composable
-fun SignupScreen(onSignupClick: () -> Unit, onBackToLoginClick: () -> Unit, navigate: Unit) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-
-
-    // Firebase and Context initialization INSIDE the Composable
-  //  val context = LocalContext.current
-    //val auth: Unit = remember { Firebase.auth } // Use KTX for Firebase.auth
-    //val database: Unit = remember { Firebase.database } // Use KTX for Firebase.database
-
-    // Helper function for registration
-    @Composable
-    fun performRegistration() {
-        if (name.isBlank() || email.isBlank() || password.isBlank()) {
-            Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (password != confirmPassword) {
-            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-            return
-        }
-        // Basic email validation (optional, consider more robust validation)
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(context, "Enter a valid email address", Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (password.length < 6) {
-            Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
-            return
-        }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Create Account",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Full Name") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-//            OutlinedTextField(
-//                value = password,
-//                onValueChange = { password = it },
-//                label = { Text("Password") },
-//                visualTransformation = PasswordVisualTransformation(),
-//                singleLine = true,
-//                modifier = Modifier.fillMaxWidth()
-//            )
-
-            PasswordInputField(
-                label = "Password",
-                password = password,
-                onPasswordChange = { password = it }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = onSignupClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Sign Up")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(onClick = onBackToLoginClick) {
-                Text("Already have an account? Login")
-            }
-        }
-    }
-}
-
 @SuppressLint("MissingPermission")
 @Composable
 fun LocationScreen(
@@ -568,7 +579,8 @@ fun LocationScreen(
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     if (location != null) {
                         val geocoder = Geocoder(context, Locale.getDefault())
-                        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                        val addresses =
+                            geocoder.getFromLocation(location.latitude, location.longitude, 1)
                         if (!addresses.isNullOrEmpty()) {
                             locationText = addresses[0].getAddressLine(0)
                         } else {
@@ -621,122 +633,243 @@ fun LocationScreen(
     }
 }
 
-
-//@Preview(showBackground = true)
 @Composable
-fun HomeScreenScaffold() {
-    Scaffold(
-        modifier = Modifier,
-        floatingActionButtonPosition = FabPosition.Center,
-//        isFloatingActionButtonDocked = true, // This parameter is not available in Material3 Scaffold
-        bottomBar = {
-            BottomAppBar(containerColor = Color.Red){
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(space = 80.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { /* TODO */ }) {
-                    Image(
-                        painter = painterResource(id = R.drawable.homep),
-                        contentDescription = null
-                    )}
-                    IconButton(onClick = { /* TODO */ }) {
-                    Image(
-                        painter = painterResource(id = R.drawable.contact),
-                        contentDescription = null
-                    )}
-                    IconButton(onClick = { /* TODO */ }) {
-                    Image(
-                        painter = painterResource(id = R.drawable.chat),
-                        contentDescription = null
-                    )}
-                    IconButton(onClick = { /* TODO */ }) {
-                    Image(
-                        painter = painterResource(id = R.drawable.heart),
-                        contentDescription = null
-                    )}
-                }
-
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* TODO: Navigate to Cart or Add */ },
-                containerColor = Color.Red,
-                shape = CircleShape
-            ){
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
-                    tint = Color.White
-                )
-            }
-
-            Box (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Transparent),
-                contentAlignment = Alignment.Center
-
-            ){
-
-                Box(
-                    modifier = Modifier
-                        .offset(y = 3.dp)
-                        .size(size = 50.dp)
-                        .clip(CircleShape)
-                        // .padding(start = 0.dp)
-                        .background(Color.Red),
-                    //  contentAlignment = Alignment.Center
-
-                )
+fun SignupScreen(
+    navController: NavController,
+    onBackToLoginClick: () -> Unit,
+    auth: FirebaseAuth,
+    database: FirebaseDatabase,
+//    onSignupClick: NavHostController,
+//    onBackToLoginClick: () -> Unit,
+//    navigate: Unit,
+//    navController: NavHostController
+) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
 
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    Modifier.size(size = 40.dp),
-                    tint = Color.White
-                )
+    val context = LocalContext.current
+    val auth: FirebaseAuth = remember { Firebase.auth }
+    val database: FirebaseDatabase = remember { Firebase.database }
 
-            }
+
+    // This is a regular (non-Composable) function.
+    // It can access `navController` because it's defined within the scope
+    // of SignupScreen, where navController is a parameter.
+    // NOT @Composable
+    fun performRegistration() {
+        if (name.isBlank() || email.isBlank() || password.isBlank()) {
+            Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (password != confirmPassword) {
+            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(context, "Enter a valid email address", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (password.length < 6) {
+            Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+            return
         }
 
-    ) {
-        Box(modifier = Modifier.padding(it)){
-            HomeScreen(
-                onFoodItemClick = TODO(),
-                onCartClick = TODO(),
-                onHistoryClick = TODO(),
-                modifier = TODO()
-            )
+        isLoading = true
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                isLoading = false
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Signup Successful", Toast.LENGTH_SHORT).show()
+                    val userId = auth.currentUser?.uid
+                    if (userId != null) {
+                        val userProfile = mapOf("name" to name, "email" to email)
+                        database.getReference("users").child(userId).setValue(userProfile)
+                    }
+                    navController.navigate("location") { // Or "home"
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                } else {
+                    Toast.makeText(context, "Signup Failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+    }
 
+    // --- Start of UI ---
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "Create Account",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField( /* ... Name ... */ value = name, onValueChange = { name = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedTextField( /* ... Email ... */ value = email, onValueChange = { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(12.dp))
+            PasswordInputField(
+                label = "Password",
+                password = password,
+                onPasswordChange = { password = it }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            PasswordInputField( // Use PasswordInputField for confirm password too
+                label = "Confirm Password",
+                password = confirmPassword,
+                onPasswordChange = { confirmPassword = it }
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { performRegistration() }, // CALL THE LOCAL FUNCTION
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text("Sign Up")
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            TextButton(onClick = { if (!isLoading) onBackToLoginClick() }) {
+                Text("Already have an account? Login")
+            }
+        }
+    }
+    // This was the closing brace for performRegistration(), which is incorrect.
+    // The UI should be outside performRegistration() if performRegistration is a helper function.
+    // If performRegistration was meant to BE the composable content, the structure is very different.
+    // I've assumed performRegistration is a helper function called by the button.
+}
+
+  
+
+    //@Preview(showBackground = true)
+    @Composable
+    fun HorizontalSliderItems() {
+        val text = listOf<SlidingContent>(
+            SlidingContent("All", selected = true),
+            SlidingContent("Combos", selected = false),
+            SlidingContent("Pizza", selected = false),
+            SlidingContent("Burgers", selected = false),
+            SlidingContent("Snacks", selected = false)
+        )
+        // SlidingContent("Beverages" , selected = false))
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
+            //verticalAlignment = Alignment.CenterVertically
+
+        ) {
+            text.forEach {
+                Box(
+                    modifier = Modifier
+                        .height(height = 30.dp)
+                        .wrapContentWidth()
+                        .background(
+                            color = if (it.selected) Color.Red else Color.Transparent,
+                            shape = RoundedCornerShape(size = 16.dp)
+                        )
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = it.text,
+                        Modifier,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (it.selected) Color.White else Color.Black
+                    )
+                }
+            }
         }
     }
 
-}
+    data class SlidingContent(
+        val text: String,
+        val selected: Boolean = false
+    )
+
+    @Composable
+    fun SearchBox() {
+        Row(
+            modifier = Modifier,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(height = 60.dp)
+                    .padding(top = 8.dp)
+                    .width(width = 300.dp)
+                    .clip(shape = RoundedCornerShape(size = 10.dp))
+                    .background(Color.Transparent)
+                    .padding(all = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
+                //verticalAlignment = Alignment.CenterVertically
+
+            ) {
+                Icon(Icons.Filled.Search, contentDescription = null)
+                Text(
+                    text = "Search",
+                    Modifier,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontStyle = FontStyle.Italic
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .size(size = 50.dp)
+                    .background(color = Color.Red, shape = RoundedCornerShape(size = 10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.nav),
+                    contentDescription = null,
+                    // modifier = Modifier.size(120.dp)
+                )
+            }
+        }
+
+    }
 
 
-//@Preview(showBackground = true)
+
+
 @Composable
-fun FooditemPreview(navController: NavController) {
+fun FooditemPreview(
+    foodItemId: String, // Example: To display item-specific data
+    onItemClick: () -> Unit // Changed from NavController
+) {
     Card(
         modifier = Modifier
             .width(width = 180.dp)
             .height(height = 240.dp)
-            .clickable {
-                navController.navigate("FoodDetails")
-            },
+            .clickable { onItemClick() }, // Use the lambda
         shape = RoundedCornerShape(size = 20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        //  colors = CardDefaults.cardElevation(defaultElevation = 5.dp)
-    ){
+    ) {
         Image(
-            painter = painterResource(id = R.drawable.hunburger),
-            contentDescription = "hunburger",
+            painter = painterResource(id = R.drawable.hunburger), // Replace with actual item image
+            contentDescription = "Food item image", // More descriptive
             modifier = Modifier
                 .padding(all = 20.dp)
                 .size(120.dp),
@@ -744,188 +877,113 @@ fun FooditemPreview(navController: NavController) {
         )
         Column(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp)
-        ){
-            Text(text = "Hunger Buzz", Modifier, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = "Wendy's Hotdog", Modifier, fontSize = 16.sp, fontWeight = FontWeight.Normal)
+        ) {
+            Text(
+                text = "Hunger Buzz $foodItemId", // Display item-specific data
+                modifier = Modifier, // Correct named parameter
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "Wendy's Hotdog",
+                modifier = Modifier, // Correct named parameter
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal
+            )
             Spacer(modifier = Modifier.height(8.dp))
-
         }
         Row(
-            modifier = Modifier,
+            modifier = Modifier.fillMaxWidth(), // Allow row to fill width for spacing
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween // For spacing rating and heart
         ) {
-            RatingDataPreview()
-            Spacer(modifier = Modifier.weight(weight = 1f))
+            RatingDataPreview(modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)) // Add padding
             Image(
                 painter = painterResource(id = R.drawable.love),
-                contentDescription = null,
-                modifier = Modifier.padding(top = 5.dp, end = 5.dp),
+                contentDescription = "Favorite",
+                modifier = Modifier.padding(top = 5.dp, end = 16.dp, bottom = 8.dp).size(24.dp), // Add padding and size
             )
-           // Text(text = "4.5", Modifier, fontSize = 16.sp, fontWeight = FontWeight.Normal)
         }
-
     }
-
 }
 
-//@Preview(showBackground = true)
+
 @Composable
-fun RatingDataPreview() {
+fun RatingDataPreview(modifier: Modifier = Modifier) { // Accept modifier
     Row(
-        modifier = Modifier.padding(top = 16.dp, start = 14.dp)
+        modifier = modifier, // Use passed modifier
+        verticalAlignment = Alignment.CenterVertically // Align items in the row
     ) {
         Image(
             painter = painterResource(id = R.drawable.star),
-            contentDescription = "star",
+            contentDescription = "star rating",
             modifier = Modifier.size(16.dp)
         )
-        Text(text = "4.5", Modifier, fontSize = 16.sp, fontWeight = FontWeight.Normal)
-
+        Spacer(modifier = Modifier.width(4.dp)) // Space between star and text
+        Text(
+            text = "4.5",
+            // modifier = Modifier, // Not needed if no specific mods for text itself
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Normal
+        )
     }
 }
 
-//@Preview(showBackground = true)
 @Composable
 fun HomeScreen(
-// navController: NavController, // You might replace this with specific action lambdas
-// onDismiss: () -> Unit,      // This might have been for a different purpose, assess if still needed
-onFoodItemClick: (foodItemId: String) -> Unit, // Example: pass an ID for specific food item
+onFoodItemClick: (foodItemId: String) -> Unit,
 onCartClick: () -> Unit,
-onHistoryClick: () -> Unit, // If you add a history button/icon
-// Add other necessary parameters
-modifier: Modifier = Modifier // Good practice to include a modifier
+onHistoryClick: () -> Unit,
+modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier // Use the passed modifier from Scaffold
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 20.dp)
+            .padding(horizontal = 20.dp) // Keep additional padding if needed, or rely on Scaffold's
     ) {
-        Text(text = "Tasty WaveEats", Modifier, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, fontStyle = FontStyle.Italic)
-        Text(text = "Order your favorite food and snack ", Modifier, fontSize = 14.sp,
+        Text(
+            text = "Tasty WaveEats",
+            modifier = Modifier, // Correct named parameter
+            fontSize = 28.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontStyle = FontStyle.Italic
+        )
+        Text(
+            text = "Order your favorite food and snack ",
+            modifier = Modifier, // Correct named parameter
+            fontSize = 14.sp,
             color = Color(color = 0xFF707070),
-            fontWeight = FontWeight.Normal)
+            fontWeight = FontWeight.Normal
+        )
         SearchBox()
         HorizontalSliderItems()
 
-
-      //  HomeScreenScaffold()
+        // Example: If you need a direct history button here too
+        // Button(onClick = onHistoryClick) { Text("Order History") }
 
         LazyVerticalGrid(
             horizontalArrangement = Arrangement.spacedBy(space = 11.dp),
             verticalArrangement = Arrangement.spacedBy(space = 11.dp),
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize() // This might be too much if SearchBox and HorizontalSliderItems are above
+                .weight(1f) // Allow grid to take remaining space
                 .padding(vertical = 10.dp),
             columns = GridCells.Fixed(count = 2),
-          //  contentPadding = PaddingValues(all = 20.dp),
         ) {
-           items( count = 10) {
-              FooditemPreview(navController = rememberNavController())
-
-            }
-
-        }
-        Button(
-            onClick = onCartClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("View Cart")
-        }
-
-
-
-    }
-}
-
-//@Preview(showBackground = true)
-@Composable
-fun HorizontalSliderItems(){
-    val text = listOf<SlidingContent>(
-        SlidingContent("All", selected = true),
-        SlidingContent("Combos", selected = false),
-        SlidingContent("Pizza" , selected = false),
-        SlidingContent("Burgers" , selected = false),
-        SlidingContent("Snacks" , selected = false))
-      // SlidingContent("Beverages" , selected = false))
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 8.dp, vertical = 8.dp)
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
-        //verticalAlignment = Alignment.CenterVertically
-
-        ) {
-        text.forEach {
-            Box(
-                modifier = Modifier
-                    .height(height = 30.dp)
-                    .wrapContentWidth()
-                    .background(
-                        color = if (it.selected) Color.Red else Color.Transparent,
-                        shape = RoundedCornerShape(size = 16.dp)
-                    )
-                    .padding(horizontal = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = it.text,
-                    Modifier,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (it.selected)Color.White else Color.Black
+            val foodItems = List(10) { index -> "food_item_$index" } // Dummy data
+            items(items = foodItems, key = { it }) { foodItemId -> // Use items(list, key)
+                FooditemPreview(
+                    foodItemId = foodItemId, // Pass data if needed by FooditemPreview for display
+                    onItemClick = { onFoodItemClick(foodItemId) } // Call the lambda
                 )
             }
         }
-    }
-}
-data class SlidingContent(
-    val text: String,
-    val selected : Boolean = false
-)
-
-@Composable
-fun SearchBox(){
-    Row(
-        modifier = Modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-
-    ) {
-        Row(
-            modifier = Modifier
-                .height(height = 60.dp)
-                .padding(top = 8.dp)
-                .width(width = 300.dp)
-                .clip(shape = RoundedCornerShape(size = 10.dp))
-                .background(Color.Transparent)
-                .padding(all = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
-            //verticalAlignment = Alignment.CenterVertically
-
+        Button( // This button might be better placed in a Scaffold bottom bar or top app bar
+            onClick = onCartClick,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
         ) {
-            Icon(Icons.Filled.Search, contentDescription = null)
-            Text(
-                text = "Search",
-                Modifier,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontStyle = FontStyle.Italic
-            )
-        }
-        Box(
-            modifier = Modifier
-                .padding(top = 10.dp)
-                .size(size = 50.dp)
-                .background(color = Color.Red, shape = RoundedCornerShape(size = 10.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.nav),
-                contentDescription = null,
-                // modifier = Modifier.size(120.dp)
-            )
+            Text("View Cart")
         }
     }
-
 }
+
